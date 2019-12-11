@@ -1,9 +1,9 @@
 from pymata_aio.constants import Constants
-import Romeo
+import Leonardo
 import sys
 import time
 
-board = Romeo.Romeo()
+board = Leonardo.Leonardo()
 
 def setup():
     for i in range(6,14):

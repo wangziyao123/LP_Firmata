@@ -322,7 +322,7 @@ class DFRobot_PN532_IIC(DFRobot_PN532):
         data.append(PN532_POSTAMBLE)
         print("from wake_up: ", PN532_I2C_ADDRESS, data)
         self.i2c.i2c_write_request(PN532_I2C_ADDRESS, data)
-        self.i2c.sleep(0.2)
+        self.i2c.sleep(0.5)
         val = self.read_ACK(14)
         if val != 1:
             return 0
@@ -330,7 +330,7 @@ class DFRobot_PN532_IIC(DFRobot_PN532):
 
     def write_cmd(self, cmd, cmd_len):
         self.i2c.i2c_write_request(PN532_I2C_ADDRESS, cmd)
-        self.i2c.sleep(0.2)
+        self.i2c.sleep(0.1)
 
     def clear(self):
         return 1
@@ -339,17 +339,17 @@ class DFRobot_PN532_IIC(DFRobot_PN532):
         pn532ack = [0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00]
         # time.sleep(0.002)
         self.i2c.i2c_read_request(PN532_I2C_ADDRESS, 8, 8)
-        self.i2c.sleep(0.1)
+        self.i2c.sleep(0.2)
         data = self.i2c.i2c_read_data(PN532_I2C_ADDRESS)[1:-1]
-        # print("from DFRobot_PN532_IIC read_ACK: ", data)
+        print("from DFRobot_PN532_IIC read_ACK: ", data)
         for i in range(6):
-            # time.sleep(0.001)
+            time.sleep(0.001)
             self.receive_ACK[i] = data[i]
-        # self.i2c.sleep(0.5)
+        self.i2c.sleep(0.5)
         self.i2c.i2c_read_request(PN532_I2C_ADDRESS, x-4, 8)
-        self.i2c.sleep(0.1)
+        self.i2c.sleep(0.2)
         data = self.i2c.i2c_read_data(PN532_I2C_ADDRESS)[1:-1]
-        # print("from DFRobot_PN532_IIC read_ACK: ", data)
+        print("from DFRobot_PN532_IIC read_ACK: ", data)
         for i in range(x - 6):
             # time.sleep(0.001)
             self.receive_ACK[i + 6] = data[i]

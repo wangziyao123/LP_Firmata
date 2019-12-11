@@ -8,11 +8,11 @@
 """
 
 from pymata_aio.constants import Constants
-import Romeo
+import Leonardo
 import sys
 import time
 
-board = Romeo.Romeo()
+board = Leonardo.Leonardo()
 BOARD_LED=13
 
 

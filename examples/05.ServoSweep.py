@@ -1,18 +1,18 @@
 from pymata_aio.constants import Constants
-import Romeo
+import Leonardo
 import sys
 import time
 
-board = Romeo.Romeo()
+board = Leonardo.Leonardo()
 
 SERVO_PIN = 10
 
 
 def setup():
     board.servo_config(SERVO_PIN)
-    board.sleep(0.2);
+    board.sleep(0.2)
     board.analog_write(SERVO_PIN, 0)
-    board.sleep(0.5);
+    board.sleep(0.5)
     
 def loop():
     print("Servo sweep ( 0  to 180 degree )")

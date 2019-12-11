@@ -28,7 +28,7 @@
 #include <Firmata.h>
 #include "DFRobot_IRremote.h"
 #include "DFRobot_DHT.h"
-//#include "DFRobot_NeoPixel.h"
+#include "DFRobot_NeoPixel.h"
 #include "DFRobot_NFC0231.h"
 
 #define I2C_WRITE                   B00000000
@@ -75,10 +75,10 @@
  *============================================================================*/
  
 IRremote_Receive *IRRcv = NULL;
-//DFRobot_NeoPixel *NP = NULL;
-//DFRobot_DHT *dht = NULL;
-DFRobot_DHT dht = DFRobot_DHT();
-DFRobot_PN532_IIC *nfc = NULL;
+DFRobot_NeoPixel *NP = NULL;
+DFRobot_DHT *dht = NULL;
+//DFRobot_DHT dht = DFRobot_DHT();
+//DFRobot_PN532_IIC *nfc = NULL;
 uint32_t keyBuf[21]={
 0xFD00FF,//power
 0xFD807F,//VOL+
@@ -840,13 +840,13 @@ void sysexCallback(byte command, byte argc, byte *argv)
 		  }
 		  break;
 		}
-		/*case SUB_MESSAGE_WS2812: {
+		case SUB_MESSAGE_WS2812: {
 		  if (IS_PIN_DIGITAL(argv[1])) {
 			//setPinModeCallback(argv[1], PIN_MODE_OUTPUT);
 			DFROBOT_Neo_Pixel(argv); 
 		  }
 		  break;
-		}*/
+		}
 		case SUB_MESSAGE_DHT: {// {'sys_msg':'0x0D','argv':{'sub_msg':0x00,'pin':int,'model':'0x00/0x01'}}
 		  pin = argv[1];
 		  if (!IS_PIN_DIGITAL(pin)) {

@@ -2115,7 +2115,7 @@ class PymataCore:
         return current_command
 
     async def _dfrobot_cmd_dispatcher(self, data):
-        print("from dfrobot_msg: ", data)
+        # print("from dfrobot_msg: ", data)
         data = data[1:-1]
         sub_msg = {
             PrivateConstants.SUB_MESSAGE_DHT: self._dht_parser,
