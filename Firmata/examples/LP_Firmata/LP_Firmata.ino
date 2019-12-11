@@ -29,7 +29,7 @@
 #include "DFRobot_IRremote.h"
 #include "DFRobot_DHT.h"
 #include "DFRobot_NeoPixel.h"
-#include "DFRobot_NFC0231.h"
+//#include "DFRobot_NFC0231.h"
 
 #define I2C_WRITE                   B00000000
 #define I2C_READ                    B00001000
@@ -559,7 +559,7 @@ void DFROBOT_IRremote(byte *argv) {
   
 }
 
-/*void DFROBOT_Neo_Pixel(byte *argv) {
+void DFROBOT_Neo_Pixel(byte *argv) {
   byte pin = argv[1];
   uint8_t r = argv[2];
   uint8_t g = argv[3];
@@ -573,15 +573,12 @@ void DFROBOT_IRremote(byte *argv) {
    NP = new DFRobot_NeoPixel;
    NP->begin(pin, 7, 255);
   }
-  //uint32_t color = 0xFF0000;
-  //DFRobot_NeoPixel neo_pixel;
-  //neo_pixel.begin(pin_num, 7, 255);
   NP->setRangeColor(0, 7, color);
-}*/
+}
 
 void DFROBOT_DHT_getTemp_Hum() {
-  float temperature = dht.getTemperature();
-  float humidity = dht.getHumidity();
+  float temperature = dht->getTemperature();
+  float humidity = dht->getHumidity();
   byte data[6] = {SUB_MESSAGE_DHT, 0, 0, 0, 0, 0};
   data[1] = temperature < 0 ? 1 : 0;
   temperature = abs(temperature);
@@ -832,7 +829,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
     case DFROBOT_MESSAGE: {
       mode = argv[0];
 	  byte pin;
-      Serial1.print("DFROBOT_MESSAGE-mode=0x");Serial1.println(mode,HEX);
+      //Serial1.print("DFROBOT_MESSAGE-mode=0x");Serial1.println(mode,HEX);
 	  switch (mode) {
         case SUB_MESSAGE_IR: {// {'sys_msg':'0x0D','argv':{'sub_msg':0x00,'pin':int,'mode':'0x00/0x01'}}
 		  if (IS_PIN_DIGITAL(argv[2])) {
@@ -852,13 +849,14 @@ void sysexCallback(byte command, byte argc, byte *argv)
 		  if (!IS_PIN_DIGITAL(pin)) {
 		    break;
 		  }
-          //if (dht == NULL) {
-          //dht = new DFRobot_DHT;
-	      dht.begin(pin, DHT11);
-          //}
+          if (dht == NULL) {
+            dht = new DFRobot_DHT;
+	        dht->begin(pin, DHT11);
+          }
 		  DFROBOT_DHT_getTemp_Hum();
+		  break;
 		}
-		case SUB_MESSAGE_NFC: {
+		/*case SUB_MESSAGE_NFC: {
 			byte reportData[3] = {SUB_MESSAGE_NFC, SUB_MESSAGE_NFC_CONF, 0x01};
 			//DFROBOT_Firmata_Write(DFROBOT_MESSAGE, reportData, 3);
 		  byte task = argv[1];
@@ -879,7 +877,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
 			  break;
 		  }
 		  break;
-		}
+		}*/
 	  }
 	  break;
 	}
@@ -944,9 +942,8 @@ void systemResetCallback()
 
 void setup()
 {
-  Serial1.begin(115200);
+  //Serial1.begin(115200);
   Firmata.setFirmwareVersion(FIRMATA_FIRMWARE_MAJOR_VERSION, FIRMATA_FIRMWARE_MINOR_VERSION);
-
   Firmata.attach(ANALOG_MESSAGE, analogWriteCallback);
   Firmata.attach(DIGITAL_MESSAGE, digitalWriteCallback);
   Firmata.attach(REPORT_ANALOG, reportAnalogCallback);
