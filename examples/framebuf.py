@@ -1,3 +1,8 @@
+"""
+The class of framebuf is using for modifying the data that
+will write to the LCD-module.
+"""
+
 import json
 
 MVLSB     = 0

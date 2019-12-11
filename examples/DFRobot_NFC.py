@@ -1,3 +1,8 @@
+"""
+Import this file to initialize nfc-object to control NFC module.
+Only support I2C-connection with NFC module.
+"""
+
 import abc
 import time
 
