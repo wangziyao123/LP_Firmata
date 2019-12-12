@@ -172,11 +172,11 @@ void DFRobot_DHT::readSensor()
   // Request sample
 
 #ifdef NRF5
-  digitalWrite1(pin, LOW); // Send start signal
+  digitalWrite(pin, LOW); // Send start signal
   pinMode1(pin, OUTPUT);
 #else
   pinMode(pin, OUTPUT);
-  digitalWrite1(pin, LOW); // Send start signal
+  digitalWrite(pin, LOW); // Send start signal
   
 #endif
   if ( model == DHT11 ) {
@@ -188,9 +188,9 @@ void DFRobot_DHT::readSensor()
   }
 #ifdef NRF5
   pinMode1(pin, INPUT);
-  digitalWrite1(pin, HIGH); // Switch bus to receive data
+  digitalWrite(pin, HIGH); // Switch bus to receive data
 #else
-  digitalWrite1(pin, HIGH); // Switch bus to receive data
+  digitalWrite(pin, HIGH); // Switch bus to receive data
   pinMode(pin, INPUT);
   
 #endif
@@ -213,7 +213,7 @@ void DFRobot_DHT::readSensor()
         return;
       }
     }
-    while ( digitalRead1(pin) == (i & 1) ? HIGH : LOW );
+    while ( digitalRead(pin) == (i & 1) ? HIGH : LOW );
 
     if ( i >= 0 && (i & 1) ) {
       // Now we are being fed our 40 bits
