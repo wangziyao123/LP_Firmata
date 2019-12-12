@@ -3,9 +3,9 @@
 ### 配置方法（电脑或树莓派已安装好python环境）
 
 * **配置 python 的依赖环境**
-	 * **windows环境下: **，将 pymata-aio-2.19.tar.gz 解压，以被解压的文件夹的路径打开命令行，运行里面的setup.py文件。
+	 * **windows环境下**- 将 pymata-aio-2.19.tar.gz 解压，以被解压的文件夹的路径打开命令行，运行里面的setup.py文件。
 		  * **运行命令** >>>python setup.py
-	 * **linux环境下: **，将 pymata-aio-2.19.tar.gz 解压，以被解压的文件夹的路径打开命令行，运行里面的setup.py文件。
+	 * **linux环境下**- 将 pymata-aio-2.19.tar.gz 解压，以被解压的文件夹的路径打开命令行，运行里面的setup.py文件。
 		  * **运行命令** $tar -zxvf pymata-aio-2.19.tar.gz
 		  * **运行命令** $python3 setup.py install
 * **配置 Arduino SDK 环境**
