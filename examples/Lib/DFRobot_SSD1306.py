@@ -5,7 +5,7 @@ Able to draw line, rectangle, circle, pixel, english and chinese text,
 fill_rect, fill_circle, fill screen, etc.
 """
 
-import framebuf
+from Lib import framebuf
 import time
 
 SSD1306_JUMPTABLE_BYTES        = 4

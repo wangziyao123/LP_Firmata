@@ -1,7 +1,7 @@
-from pymata_aio.constants import Constants
-import Leonardo
 import sys
 import time
+from pymata_aio.constants import Constants
+from Lib import Leonardo
 
 board = Leonardo.Leonardo()
 neo_pixel1 = 8
@@ -13,7 +13,7 @@ def setup():
     board.sleep(1)
     board.setRangeColor(neo_pixel1, 0, 7, 0x12cdff)
     board.sleep(1)
-    # board.neo_pixel_rainbow(neo_pixel1, 0, 7, 1, 200)
+    board.neo_pixel_rainbow(neo_pixel1, 0, 7, 1, 200)
     board.sleep(1)
     # board.set_neo_pixel(neo_pixel2, 7, 255)
     # board.sleep(1)

@@ -267,7 +267,7 @@ class FrameBuffer(object):
                 x += 8
             else:
                 count = 0
-                self.ch_text_json = json.load(open("fonts_msyh.ttf.json", 'r', encoding='utf-8'))
+                self.ch_text_json = json.load(open("Lib/fonts_msyh.ttf.json", 'r', encoding='utf-8'))
                 if not self.ch_text_json['data'].get(i):
                     i = " "
                 str_buf = self.ch_text_json['data'].get(i)

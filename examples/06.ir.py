@@ -1,7 +1,6 @@
-
-import Leonardo
 import sys
 import time
+from Lib import Leonardo
 """
 keyBuf[
 0xFD00FF,//power
@@ -26,15 +25,15 @@ keyBuf[
 0xFD9867,//8
 0xFD58A7 //9
 ]
+使用时需讲英文字母换成小写，并且使用字符串格式如 power 键 对应 '0xfd00ff'
 """
 board = Leonardo.Leonardo()
 IR_SENSOR = 7  # ir sensor must connect digital pin in [0, 1, 2, 3, 7]
 
-
 def setup():
     board.ir_config(IR_SENSOR)
     board.sleep(1)
-
+    board.set_pin_mode(FAN_PIN, Constants.PWM)
 
 def loop():
     key = board.ir_getKey(IR_SENSOR)

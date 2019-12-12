@@ -1,8 +1,7 @@
-
-from DFRobot_NFC import DFRobot_PN532_IIC
-import Leonardo
 import sys
 import time
+from Lib.DFRobot_NFC import DFRobot_PN532_IIC
+from Lib import Leonardo
 
 board = Leonardo.Leonardo()
 board.i2c_config()

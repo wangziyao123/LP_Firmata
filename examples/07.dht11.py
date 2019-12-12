@@ -1,4 +1,4 @@
-import Leonardo
+from Lib import Leonardo
 import sys
 import time
 

@@ -1,10 +1,10 @@
-import DFRobot_SSD1306
-
-from pymata_aio.constants import Constants
-from pymata_aio.pymata_serial import PymataSerial
-import Leonardo
 import sys
 import time
+from pymata_aio.constants import Constants
+from pymata_aio.pymata_serial import PymataSerial
+
+from Lib import DFRobot_SSD1306
+from Lib import Leonardo
 
 
 board = Leonardo.Leonardo()
