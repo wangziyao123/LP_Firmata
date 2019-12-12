@@ -313,7 +313,6 @@ class DFRobot_PN532_IIC(DFRobot_PN532):
         pn532PacketBuffer[3] = 0x01  # use IRQ pin!
         self.enable = True
         cmd_len = 5
-        # time.sleep(0.02)
         checksum = PN532_PREAMBLE + PN532_PREAMBLE + PN532_STARTCODE2
         data = []
         data.extend(
@@ -325,7 +324,7 @@ class DFRobot_PN532_IIC(DFRobot_PN532):
             checksum += pn532PacketBuffer[i]
         data.append(255-((checksum%255)-1))
         data.append(PN532_POSTAMBLE)
-        print("from wake_up: ", PN532_I2C_ADDRESS, data)
+        # print("from wake_up: ", PN532_I2C_ADDRESS, data)
         self.i2c.i2c_write_request(PN532_I2C_ADDRESS, data)
         self.i2c.sleep(0.5)
         val = self.read_ACK(14)
@@ -342,11 +341,10 @@ class DFRobot_PN532_IIC(DFRobot_PN532):
 
     def read_ACK(self, x, timeout=1000):
         pn532ack = [0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00]
-        # time.sleep(0.002)
         self.i2c.i2c_read_request(PN532_I2C_ADDRESS, 8, 8)
         self.i2c.sleep(0.2)
         data = self.i2c.i2c_read_data(PN532_I2C_ADDRESS)[1:-1]
-        print("from DFRobot_PN532_IIC read_ACK: ", data)
+        # print("from DFRobot_PN532_IIC read_ACK: ", data)
         for i in range(6):
             time.sleep(0.001)
             self.receive_ACK[i] = data[i]
@@ -354,9 +352,8 @@ class DFRobot_PN532_IIC(DFRobot_PN532):
         self.i2c.i2c_read_request(PN532_I2C_ADDRESS, x-4, 8)
         self.i2c.sleep(0.2)
         data = self.i2c.i2c_read_data(PN532_I2C_ADDRESS)[1:-1]
-        print("from DFRobot_PN532_IIC read_ACK: ", data)
+        # print("from DFRobot_PN532_IIC read_ACK: ", data)
         for i in range(x - 6):
-            # time.sleep(0.001)
             self.receive_ACK[i + 6] = data[i]
         # print(list(self.receive_ACK[19:25]))
         if pn532ack != list(self.receive_ACK[:6]):

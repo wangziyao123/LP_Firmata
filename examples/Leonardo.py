@@ -27,3 +27,14 @@ class Leonardo(PyMata3):
     x=self.segment[val]
     for i in range(8):
       self.digital_write(13-i, 1 if (x>>(7-i))&1 else 0)
+
+  def rgbToColor(self, r=0, g=0, b=0):
+      r = abs(r)
+      g = abs(g)
+      b = abs(b)
+      r = r if r < 255 else 255
+      g = g if g < 255 else 255
+      b = b if b < 255 else 255
+      color = ((r << 16) | (g << 8)) | b
+      print(color)
+      return color

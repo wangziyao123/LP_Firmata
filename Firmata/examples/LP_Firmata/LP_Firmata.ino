@@ -29,7 +29,6 @@
 #include "DFRobot_IRremote.h"
 #include "DFRobot_DHT.h"
 #include "DFRobot_NeoPixel.h"
-//#include "DFRobot_NFC0231.h"
 
 #define I2C_WRITE                   B00000000
 #define I2C_READ                    B00001000
@@ -55,53 +54,40 @@
 #define SUB_MESSAGE_TONE            0x02
 #define SUB_MESSAGE_PULSE           0x03
 #define SUB_MESSAGE_MILLIS          0x04
-#define SUB_MESSAGE_WS2812          0x05
-#define SUB_MESSAGE_NFC             0x06
+#define SUB_MESSAGE_NEOPIXEL        0x05
 #define SUB_MESSAGE_DHT             0x0D
 #define SUB_MESSAGE_I2CSCAN         0x0E
-#define SUB_MESSAGE_DS18B20         0x11
-#define SUB_MESSAGE_VIBRATION       0x15
 
 #define SUB_MESSAGE_RESET           0x7f
 
 /*-------------- Macro of DFROBOT SENSOR FUNCTIONS  ----------------*/
-#define SUB_MESSAGE_NFC_CONF                 0x00
-#define SUB_MESSAGE_NFC_SCAN                 0x01
-
 #define SUB_MESSAGE_IR_CONF                  0x00
 #define SUB_MESSAGE_IR_GET_KEY               0x01
+
+#define SUB_MESSAGE_NEOPIXEL_CONF            0x00
+#define SUB_MESSAGE_NEOPIXEL_SETRANGECOLOR   0x01
+#define SUB_MESSAGE_NEOPIXEL_CLEAR           0x02
+#define SUB_MESSAGE_NEOPIXEL_RAINBOW         0x03
 /*==============================================================================
  * GLOBAL VARIABLES
  *============================================================================*/
- 
-IRremote_Receive *IRRcv = NULL;
-DFRobot_NeoPixel *NP = NULL;
+
 DFRobot_DHT *dht = NULL;
-//DFRobot_DHT dht = DFRobot_DHT();
-//DFRobot_PN532_IIC *nfc = NULL;
-uint32_t keyBuf[21]={
-0xFD00FF,//power
-0xFD807F,//VOL+
-0xFD40BF,//FUNC/STOP
-0xFD20DF,//back
-0xFDA05F,//Start/pause
-0xFD609F,//next
-0xFD10EF,//down
-0xFD906F,//vol-
-0xFD50AF,//up
-0xFD30CF,//0
-0xFDB04F,//EQ
-0xFD708F,//ST/REPT
-0xFD08F7,//1
-0xFD8877,//2
-0xFD48B7,//3
-0xFD28D7,//4
-0xFDA857,//5
-0xFD6897,//6
-0xFD18E7,//7
-0xFD9867,//8
-0xFD58A7 //9
-};
+
+typedef struct {
+	int pin;
+	IRremote_Receive *ir;
+	//String code;
+} pinIRRemote_t;
+
+typedef struct {
+	int pin;
+	DFRobot_NeoPixel *np;
+} pinNeoPixel_t;
+
+pinIRRemote_t pinRemote[5]={{0,NULL},{1,NULL},{2,NULL},{3,NULL},{7,NULL}};
+pinNeoPixel_t pinNeoPixel[2]={{-1,NULL},{-1,NULL}};
+
 
 #ifdef FIRMATA_SERIAL_FEATURE
 SerialFirmata serialFeature;
@@ -532,72 +518,107 @@ void reportDigitalCallback(byte port, int value)
  * DFROBOT SENSORS functions
  *============================================================================*/
 
-void DFROBOT_IRremote(byte *argv) {
-  byte pin = argv[2];
-  if (IRRcv != NULL && IRRcv->getPin() != pin) {
-    delete IRRcv;
-    IRRcv = NULL;
+void DFROBOT_IRremote(byte *argv, byte pin_num) {
+  int i;
+  for (i=0; i<5; i++) {
+	if (pinRemote[i].pin == pin_num) {
+	  if (pinRemote[i].ir != NULL && pinRemote[i].ir->getPin() != pin_num) {
+		pinRemote[i].ir = NULL;
+	  }
+	  break;
+	}
   }
-  switch (argv[1]) {
+  switch (argv[2]) {
     case SUB_MESSAGE_IR_CONF:
-	  if (IRRcv == NULL) {
-       IRRcv = new IRremote_Receive;
-       IRRcv->begin(pin);
+	  if (pinRemote[i].ir == NULL) {
+        pinRemote[i].ir = new IRremote_Receive;
+        pinRemote[i].ir->begin(pin_num);
       }
 	  break;
 	case SUB_MESSAGE_IR_GET_KEY:
-	  uint32_t IRData = IRRcv->getData();
-	  byte data[6] = {SUB_MESSAGE_IR, 0, 0, 0 ,0, 0};
-	  data[1] = IRData&0x7f;
-	  data[2] = (IRData>>7)&0x7f;
-	  data[3] = (IRData>>14)&0x7f;
-	  data[4] = (IRData>>21)&0x7f;
-	  data[5] = (IRData>>28)&0x7f;
-	  DFROBOT_Firmata_Write(DFROBOT_MESSAGE, data, 6);
+	  uint32_t IRData = pinRemote[i].ir->getData();
+	  byte data[7] = {SUB_MESSAGE_IR, pin_num, 0, 0 ,0, 0, 0};
+	  data[2] = IRData&0x7f;
+	  data[3] = (IRData>>7)&0x7f;
+	  data[4] = (IRData>>14)&0x7f;
+	  data[5] = (IRData>>21)&0x7f;
+	  data[6] = (IRData>>28)&0x7f;
+	  Firmata.sendSysex(DFROBOT_MESSAGE, 7, data);
 	  break;
   }
-  
 }
 
-void DFROBOT_Neo_Pixel(byte *argv) {
-  byte pin = argv[1];
-  uint8_t r = argv[2];
-  uint8_t g = argv[3];
-  uint8_t b = argv[4];
-  uint32_t color = r << 16 | g << 8 | b;
-  if (NP != NULL && NP->getPin() != pin) {
-    delete NP;
-    NP = NULL;
+void DFROBOT_Neo_Pixel(byte *argv, byte pin_num) {
+  int i;
+  bool flag = false;
+  for (i=0; i<2; i++) {
+	if (pinNeoPixel[i].pin == -1) {
+	  pinNeoPixel[i].pin = pin_num;
+	  pinNeoPixel[i].np = new DFRobot_NeoPixel;
+	  flag = true;
+	  break;
+	} else {
+	  if (pinNeoPixel[i].pin == pin_num) {flag = true; break;}
+	}
   }
-  if (NP == NULL) {
-   NP = new DFRobot_NeoPixel;
-   NP->begin(pin, 7, 255);
+  if (flag) {
+    switch (argv[2]) {
+	  uint16_t start;
+	  uint16_t end;
+	  case SUB_MESSAGE_NEOPIXEL_CONF: {
+		end = argv[3] | (argv[4]<<7);
+		uint8_t bright = argv[5] | (argv[6]<<7);
+	    pinNeoPixel[i].np->begin(pin_num, end, bright); 
+	    break;
+	  }
+	  case SUB_MESSAGE_NEOPIXEL_SETRANGECOLOR: {
+		start = argv[3] | (argv[4]<<7);
+		end = argv[5] | (argv[6]<<7);
+		uint8_t r = argv[7] | (argv[8]<<7);
+		uint8_t g = argv[9] | (argv[10]<<7);
+		uint8_t b = argv[11] | (argv[12]<<7);
+		uint32_t color = ((r << 16) | (g << 8)) | b;
+	    pinNeoPixel[i].np->setRangeColor(start, end, color);
+		break;
+	  }
+	  case SUB_MESSAGE_NEOPIXEL_CLEAR: {
+	    pinNeoPixel[i].np->clear();
+		break;
+	  }
+	  case SUB_MESSAGE_NEOPIXEL_RAINBOW: {
+	    start = argv[3] | (argv[4]<<7);
+		end = argv[5] | (argv[6]<<7);
+		uint16_t _from = argv[7] | (argv[8]<<7);
+		uint16_t _to = argv[9] | (argv[10]<<7);
+	    pinNeoPixel[i].np->showRainbow(start, end, _from, _to);
+		break;
+	  }
+	  default:break;
+    }
   }
-  NP->setRangeColor(0, 7, color);
 }
 
-void DFROBOT_DHT_getTemp_Hum() {
+void DFROBOT_DHT_getTemp_Hum(byte pin_num) {
   float temperature = dht->getTemperature();
   float humidity = dht->getHumidity();
-  byte data[6] = {SUB_MESSAGE_DHT, 0, 0, 0, 0, 0};
-  data[1] = temperature < 0 ? 1 : 0;
+  byte data[7] = {SUB_MESSAGE_DHT, pin_num, 0, 0, 0, 0, 0};
+  data[2] = temperature < 0 ? 1 : 0;
   temperature = abs(temperature);
-  data[2]=(int)temperature/1;
-  data[3]=((int)(temperature*100))%100;
-  data[4]=(int)humidity/1;
-  data[5]=((int)(humidity*100))%100;
-  DFROBOT_Firmata_Write(DFROBOT_MESSAGE, data, 6);
+  data[3]=(int)temperature/1;
+  data[4]=((int)(temperature*100))%100;
+  data[5]=(int)humidity/1;
+  data[6]=((int)(humidity*100))%100;
+  Firmata.sendSysex(DFROBOT_MESSAGE, 7, data);
 }
 
-void DFROBOT_Firmata_Write(byte command, byte *data, int data_num) {
-  int count = data_num;
+/*void DFROBOT_Firmata_Write(byte command, byte *data, int data_num) {
   Firmata.write(START_SYSEX);
   Firmata.write(command);
-  for (int i=0; i<count; i++) {
+  for (int i=0; i<data_num; i++) {
 	Firmata.write(data[i]);
   }
   Firmata.write(END_SYSEX);
-}
+}*/
 
 /*==============================================================================
  * SYSEX-BASED commands
@@ -828,56 +849,32 @@ void sysexCallback(byte command, byte argc, byte *argv)
 /************************     dfrobot   ****************************/
     case DFROBOT_MESSAGE: {
       mode = argv[0];
-	  byte pin;
-      //Serial1.print("DFROBOT_MESSAGE-mode=0x");Serial1.println(mode,HEX);
+	  byte pin = argv[1];
+	  //Serial1.print("mdoe = ");Serial1.print(mode);Serial1.print("  ");Serial1.print("pin = ");Serial1.println(pin);
 	  switch (mode) {
-        case SUB_MESSAGE_IR: {// {'sys_msg':'0x0D','argv':{'sub_msg':0x00,'pin':int,'mode':'0x00/0x01'}}
-		  if (IS_PIN_DIGITAL(argv[2])) {
-			DFROBOT_IRremote(argv);
+        case SUB_MESSAGE_IR: {
+		  if (IS_PIN_DIGITAL(pin)) {
+			DFROBOT_IRremote(argv, pin);
 		  }
 		  break;
 		}
-		case SUB_MESSAGE_WS2812: {
-		  if (IS_PIN_DIGITAL(argv[1])) {
-			//setPinModeCallback(argv[1], PIN_MODE_OUTPUT);
-			DFROBOT_Neo_Pixel(argv); 
+		case SUB_MESSAGE_NEOPIXEL: {
+		  if (IS_PIN_DIGITAL(pin)) {
+			DFROBOT_Neo_Pixel(argv, pin); 
 		  }
 		  break;
 		}
-		case SUB_MESSAGE_DHT: {// {'sys_msg':'0x0D','argv':{'sub_msg':0x00,'pin':int,'model':'0x00/0x01'}}
+		case SUB_MESSAGE_DHT: {
 		  pin = argv[1];
 		  if (!IS_PIN_DIGITAL(pin)) {
 		    break;
 		  }
           if (dht == NULL) {
             dht = new DFRobot_DHT;
-	        dht->begin(pin, DHT11);
           }
-		  DFROBOT_DHT_getTemp_Hum();
-		  break;
+		  dht->begin(pin, DHT11);
+		  DFROBOT_DHT_getTemp_Hum(pin);
 		}
-		/*case SUB_MESSAGE_NFC: {
-			byte reportData[3] = {SUB_MESSAGE_NFC, SUB_MESSAGE_NFC_CONF, 0x01};
-			//DFROBOT_Firmata_Write(DFROBOT_MESSAGE, reportData, 3);
-		  byte task = argv[1];
-		  switch (task) {
-			case SUB_MESSAGE_NFC_CONF:
-			  if (nfc == NULL) {
-				nfc = new DFRobot_PN532_IIC;
-			  }
-			  nfc->begin();
-			  delay(50);
-			  Serial1.print("nfc begin success");
-			  
-			  DFROBOT_Firmata_Write(DFROBOT_MESSAGE, reportData, 3);
-			  
-			  break;
-			case SUB_MESSAGE_NFC_SCAN:
-			  
-			  break;
-		  }
-		  break;
-		}*/
 	  }
 	  break;
 	}
@@ -942,7 +939,7 @@ void systemResetCallback()
 
 void setup()
 {
-  //Serial1.begin(115200);
+	Serial1.begin(115200);
   Firmata.setFirmwareVersion(FIRMATA_FIRMWARE_MAJOR_VERSION, FIRMATA_FIRMWARE_MINOR_VERSION);
   Firmata.attach(ANALOG_MESSAGE, analogWriteCallback);
   Firmata.attach(DIGITAL_MESSAGE, digitalWriteCallback);

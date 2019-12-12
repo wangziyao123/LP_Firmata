@@ -14,11 +14,12 @@ def loop():
     temp = board.dht_Temperature()
     print(temp)
     sys.stdout.flush()
-    board.sleep(0.5)
+    board.sleep(1)
+
     hum = board.dht_Humidity()
     print(hum)
     sys.stdout.flush()
-    board.sleep(0.5)
+    board.sleep(1)
 
 if __name__ == "__main__":
     setup()
